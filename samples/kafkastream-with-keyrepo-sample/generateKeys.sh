@@ -12,7 +12,5 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License. See accompanying LICENSE file.
 
-rm /tmp/samplestream.pkcs12
-for i in `seq 0 9`; do
-    keytool -genseckey -keystore /tmp/samplestream.pkcs12 -storetype pkcs12 -storepass sample -keyalg AES -keysize 256 -alias cpt$i -keypass sample
-done
+rm /tmp/sample.pkcs12
+keytool -genseckey -keystore /tmp/sample.pkcs12 -storetype pkcs12 -storepass sample -keyalg AES -keysize 256 -alias sample -keypass sample
