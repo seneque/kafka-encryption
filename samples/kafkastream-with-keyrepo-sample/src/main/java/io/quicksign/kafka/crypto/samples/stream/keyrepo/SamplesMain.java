@@ -20,16 +20,10 @@
 package io.quicksign.kafka.crypto.samples.stream.keyrepo;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import io.quicksign.kafka.crypto.encryption.KeyProvider;
-import io.quicksign.kafka.crypto.generatedkey.MasterKeyEncryption;
 import io.quicksign.kafka.crypto.keyrepository.KeyRepository;
 import io.quicksign.kafka.crypto.keyrepository.RepositoryBasedKeyProvider;
 import io.quicksign.kafka.crypto.keyrepository.RepositoryBasedKeyReferenceExtractor;
@@ -39,51 +33,56 @@ public class SamplesMain {
 
     public static void main(String... args) {
 
-
-        // tag::keyRepository[]
-        KeyRepository keyRepository = new KeyStoreBasedKeyRepository(
-                new File("/tmp/sample.pkcs12"),
+        // tag::main[]
+        KeyRepository fullKeyRepository = new KeyStoreBasedKeyRepository(
+                new File("/tmp/samplestream.pkcs12"),
                 "sample"
         );
-        // end::keyRepository[]
 
-        KeyProvider keyProvider = new RepositoryBasedKeyProvider(keyRepository, new SampleKeyNameObfuscator());
+        KeyRepository agency1KeyRepository = new KeyStoreBasedKeyRepository(
+                new File("/tmp/samplestream1.pkcs12"),
+                "sample"
+        );
+
+        KeyRepository agency2KeyRepository = new KeyStoreBasedKeyRepository(
+                new File("/tmp/samplestream2.pkcs12"),
+                "sample"
+        );
+
+        KeyProvider fullKeyProvider = new RepositoryBasedKeyProvider(fullKeyRepository, new SampleKeyNameObfuscator());
+        KeyProvider agency1KeyProvider = new RepositoryBasedKeyProvider(agency1KeyRepository, new SampleKeyNameObfuscator());
+        KeyProvider agency2KeyProvider = new RepositoryBasedKeyProvider(agency2KeyRepository, new SampleKeyNameObfuscator());
 
         // We create an encryption keyref for each record's key.
         // Two records with the same record key have the same encryption key ref.
         KeyReferenceExtractor keyReferenceExtractor = new RepositoryBasedKeyReferenceExtractor(new SampleKeyNameExtractor(), new SampleKeyNameObfuscator());
 
 
-        ExecutorService executorService = Executors.newFixedThreadPool(3);
+        ExecutorService executorService = Executors.newFixedThreadPool(4);
 
-        for (Modules activeModule : modules) {
-            Runnable task = activeModule.getBuilder().apply(masterKeyEncryption);
-            executorService.submit(task);
+
+        SampleProducer sampleProducer = new SampleProducer(fullKeyProvider, keyReferenceExtractor);
+
+        executorService.submit(sampleProducer);
+
+        try {
+            Thread.sleep(10000l);
+        }
+        catch (InterruptedException e) {
+            System.exit(0);
         }
 
+        SampleStream fullView = new SampleStream("full", fullKeyProvider, keyReferenceExtractor);
+        SampleStream agency1View = new SampleStream("agency1", agency1KeyProvider, keyReferenceExtractor);
+        SampleStream agency2View = new SampleStream("agency2", agency2KeyProvider, keyReferenceExtractor);
+
+        executorService.submit(fullView);
+        executorService.submit(agency1View);
+        executorService.submit(agency2View);
+
+        // end::main[]
 
     }
 
 
-    private enum Modules {
-        PRODUCER("--producer", mk -> new SampleProducer(mk)),
-        CONSUMER("--consumer", mk -> new SampleDecryptingConsumer(mk)),
-        RAW_CONSUMER("--rawConsumer", mk -> new SampleRawConsumer());
-
-        private final String option;
-        private final Function<MasterKeyEncryption, Runnable> builder;
-
-        Modules(String option, Function<MasterKeyEncryption, Runnable> builder) {
-            this.option = option;
-            this.builder = builder;
-        }
-
-        public static Optional<Modules> getByOption(String option) {
-            return Arrays.stream(values()).filter(m -> m.option.equals(option)).findFirst();
-        }
-
-        public Function<MasterKeyEncryption, Runnable> getBuilder() {
-            return builder;
-        }
-    }
 }

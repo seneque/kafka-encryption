@@ -19,7 +19,6 @@
  */
 package io.quicksign.kafka.crypto.samples.stream.keyrepo;
 
-import java.security.SecureRandom;
 import java.util.Properties;
 import java.util.Random;
 
@@ -27,7 +26,6 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.IntegerSerializer;
-import org.apache.kafka.common.serialization.LongSerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 
 import io.quicksign.kafka.crypto.Encryptor;
@@ -72,7 +70,16 @@ public class SampleProducer implements Runnable {
 
             for (long i = 0L; i < Long.MAX_VALUE; i++) {
                 long accountId = i % 10l;
-                producer.send(new ProducerRecord<>("operations", (int)i, ""+ random.nextInt(1000)));
+                producer.send(new ProducerRecord<>("operations", (int) accountId, "" + (random.nextInt(1000) - 500)));
+
+                if (i % 100 == 99) {
+                    try {
+                        Thread.sleep(10000L);
+                    }
+                    catch (InterruptedException e) {
+                        return;
+                    }
+                }
 
             }
         }

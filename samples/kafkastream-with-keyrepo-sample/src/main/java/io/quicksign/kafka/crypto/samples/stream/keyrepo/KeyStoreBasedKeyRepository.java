@@ -57,14 +57,16 @@ public class KeyStoreBasedKeyRepository implements KeyRepository {
         return maybeKey.map(Key::getEncoded);
     }
 
-    private synchronized Optional<Key> loadKey(String keyName){
+    private synchronized Optional<Key> loadKey(String keyName) {
         try {
             if (keyStore.containsAlias(keyName)) {
                 return Optional.ofNullable(keyStore.getKey(keyName, keyPass.toCharArray()));
-            } else {
+            }
+            else {
                 return Optional.empty();
             }
-        } catch (Exception e){
+        }
+        catch (Exception e) {
             throw new RuntimeException("error while loading key", e);
         }
     }

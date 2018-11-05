@@ -97,7 +97,7 @@
                             <shadedArtifactAttached>true</shadedArtifactAttached>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>io.quicksign.kafka.crypto.samples.keyrepo.SamplesMain</mainClass>
+                                    <mainClass>io.quicksign.kafka.crypto.samples.stream.keyrepo.SamplesMain</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>

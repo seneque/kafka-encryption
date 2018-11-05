@@ -31,6 +31,6 @@ public class SampleKeyNameExtractor implements KeyNameExtractor {
 
     @Override
     public String extractKeyName(String topic, Object recordKey) {
-        return "cpt"+ recordKey;
+        return "cpt" + recordKey;
     }
 }

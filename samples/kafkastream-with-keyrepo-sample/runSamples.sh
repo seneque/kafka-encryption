@@ -12,5 +12,4 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License. See accompanying LICENSE file.
 
-rm /tmp/sample.pkcs12
-keytool -genseckey -keystore /tmp/sample.pkcs12 -storetype pkcs12 -storepass sample -keyalg AES -keysize 256 -alias sample -keypass sample
+java -jar target/kafka-encryption-kafkastream-keyrepo-sample-*-shaded.jar
